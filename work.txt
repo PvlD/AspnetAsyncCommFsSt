@@ -1,0 +1,3 @@
+dotnet run --project ./BuildResponse.csproj
+
+dotnet run --project src/RequestSvc/Build.fsproj -- run
