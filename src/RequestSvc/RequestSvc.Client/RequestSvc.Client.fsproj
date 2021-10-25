@@ -4,6 +4,7 @@
     <DefineConstants>FABLE_COMPILER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="index.html" />
     <None Include="paket.references" />
     <Compile Include="Types.fs" />
     <Compile Include="Router.fs" />
@@ -12,6 +13,7 @@
     <Compile Include="State.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\..\HildenCo.Core\HildenCo.Core.fsproj" />
     <ProjectReference Include="..\RequestSvc.Shared\RequestSvc.Shared.fsproj" />

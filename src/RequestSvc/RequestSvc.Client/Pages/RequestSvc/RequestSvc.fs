@@ -90,7 +90,7 @@ let update (remote:IProductsSetviceApi) msg model =
 
           
 let appStyle = [  
-    rule "div.select, select, .width100" [
+    rule " .width100" [
         Css.width (percent 100) // Streatch list and text box to fit column, looks nicer right aligned
     ]
     rule ".field-label" [
@@ -98,7 +98,7 @@ let appStyle = [
     ]
     rule "label.label" [
         Css.textAlignLeft // To match 7GUI spec
-    ]
+    ]   
 
     rule ".width60px" [
         Css.width (px 60) 
@@ -111,7 +111,7 @@ let appStyle = [
         Css.minHeight (px 260) 
         ]
 
-
+          
 ]
 
 let errorIsSet (error: string option) = error.IsSome
@@ -171,7 +171,7 @@ let create() =
                                               )
                                               
                                               
-                                              bulma.columns[
+                                              bulma.columns[  
                                                     
                                                     bulma.column[
                                                         class' "minHeightColumn"
@@ -203,9 +203,10 @@ let create() =
                                                              
                                                              bulma.fieldLabel [bulma.label "Fake Timeout:"]
                                                              bulma.fieldBody [
-                                                                               
-                                                                               Html.select  ([
-                                                                                               class' "width60px"
+
+                                                                              
+                                                                               bulma.select  ([
+                                                                                               
                                                                                                Attr.size 1
                                                                                                Bind.selected (selectedTimeout ,List.exactlyOne >>  (fun td -> td.timeout) >>   SetTimeout >> dispatch)
                                                                                            ]  @ (timeoutsList   |> List.map (fun n ->
@@ -218,7 +219,8 @@ let create() =
                                                                                            )
 
                                                                             ]
-                                                             ]
+                                                                            
+                                                            ]
                                                             bulma.control.div [
                                                                 bulma.button.button [
                                                                     color.isSuccess
