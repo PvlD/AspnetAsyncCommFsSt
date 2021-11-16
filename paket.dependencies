@@ -20,6 +20,7 @@ nuget Fulma
 nuget Sutil
 nuget MassTransit.AspNetCore
 nuget MassTransit.RabbitMQ
+nuget Microsoft.AspNetCore.Authentication.JwtBearer  5.0.12
 
 
 nuget Fake.Core.Target

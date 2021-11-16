@@ -1,6 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-     <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <DefineConstants>FABLE_COMPILER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
@@ -13,11 +14,9 @@
     <Compile Include="State.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\..\HildenCo.Core\HildenCo.Core.fsproj" />
     <ProjectReference Include="..\RequestSvc.Shared\RequestSvc.Shared.fsproj" />
   </ItemGroup>
-   <Import Project="..\..\..\.paket\Paket.Restore.targets" />
+  <Import Project="..\..\..\.paket\Paket.Restore.targets" />
 </Project>
- 

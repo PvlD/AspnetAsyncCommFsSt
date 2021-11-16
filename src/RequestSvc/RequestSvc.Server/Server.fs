@@ -51,7 +51,7 @@ let configMassTransit (s:IServiceCollection)=
 
 let app =
     application {
-        url "http://0.0.0.0:8086"
+        //url "http://0.0.0.0:8086"
         use_router webApp
         memory_cache
         use_static "public"

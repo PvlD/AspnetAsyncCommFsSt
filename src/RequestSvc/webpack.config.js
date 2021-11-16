@@ -15,7 +15,7 @@ var CONFIG = {
     // See https://github.com/jantimon/html-webpack-plugin
     indexHtmlTemplate: './RequestSvc.Client/index.html',
     fsharpEntry: './RequestSvc.Client/output/App.js',
-    outputDir: '../../deploy/RequestSvc/public',
+    outputDir: 'deploy/public',
     assetsDir: './RequestSvc.Client/public',
     devServerPort: 8081,
     // When using webpack-dev-server, you may need to redirect some calls
@@ -80,7 +80,7 @@ module.exports = {
     plugins: isProduction ?
         commonPlugins.concat([
             new MiniCssExtractPlugin({ filename: 'style.[name].[hash].css' }),
-            new CopyWebpackPlugin({ patterns: [{ from: resolve(CONFIG.assetsDir) }] }),
+            //new CopyWebpackPlugin({ patterns: [{ from: resolve(CONFIG.assetsDir) }] }),
         ])
         : commonPlugins.concat([
             new webpack.HotModuleReplacementPlugin(),

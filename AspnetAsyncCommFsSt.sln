@@ -20,6 +20,7 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "RequestSvc.Client", "src\Re
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RequestSvc", "RequestSvc", "{A58B8E45-267B-4AF0-9B97-ADA077950466}"
 	ProjectSection(SolutionItems) = preProject
+		src\RequestSvc\Dockerfile = src\RequestSvc\Dockerfile
 		src\RequestSvc\webpack.config.js = src\RequestSvc\webpack.config.js
 	EndProjectSection
 EndProject
@@ -29,6 +30,7 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Build", "src\RequestSvc\Bui
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ResponseSvc", "ResponseSvc", "{9CD048DE-6E2D-4D2C-9C89-1469E6A4447F}"
 	ProjectSection(SolutionItems) = preProject
+		src\ResponseSvc\Dockerfile = src\ResponseSvc\Dockerfile
 		src\ResponseSvc\webpack.config.js = src\ResponseSvc\webpack.config.js
 	EndProjectSection
 EndProject
@@ -41,6 +43,8 @@ EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "RequestSvc.Shared", "src\RequestSvc\RequestSvc.Shared\RequestSvc.Shared.fsproj", "{EA3D0053-4C06-4D40-8A3F-5080886B5BC5}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ResponseSvc.Server", "src\ResponseSvc\ResponseSvc.Server\ResponseSvc.Server.fsproj", "{BF1B2107-5821-4A66-A33B-C21C4BE60457}"
+EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Build", "Build.fsproj", "{20628F1C-0B66-4FB8-96EE-E11E11C7B0F8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -153,6 +157,18 @@ Global
 		{BF1B2107-5821-4A66-A33B-C21C4BE60457}.Release|x64.Build.0 = Release|Any CPU
 		{BF1B2107-5821-4A66-A33B-C21C4BE60457}.Release|x86.ActiveCfg = Release|Any CPU
 		{BF1B2107-5821-4A66-A33B-C21C4BE60457}.Release|x86.Build.0 = Release|Any CPU
+		{20628F1C-0B66-4FB8-96EE-E11E11C7B0F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20628F1C-0B66-4FB8-96EE-E11E11C7B0F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20628F1C-0B66-4FB8-96EE-E11E11C7B0F8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{20628F1C-0B66-4FB8-96EE-E11E11C7B0F8}.Debug|x64.Build.0 = Debug|Any CPU
+		{20628F1C-0B66-4FB8-96EE-E11E11C7B0F8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{20628F1C-0B66-4FB8-96EE-E11E11C7B0F8}.Debug|x86.Build.0 = Debug|Any CPU
+		{20628F1C-0B66-4FB8-96EE-E11E11C7B0F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20628F1C-0B66-4FB8-96EE-E11E11C7B0F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20628F1C-0B66-4FB8-96EE-E11E11C7B0F8}.Release|x64.ActiveCfg = Release|Any CPU
+		{20628F1C-0B66-4FB8-96EE-E11E11C7B0F8}.Release|x64.Build.0 = Release|Any CPU
+		{20628F1C-0B66-4FB8-96EE-E11E11C7B0F8}.Release|x86.ActiveCfg = Release|Any CPU
+		{20628F1C-0B66-4FB8-96EE-E11E11C7B0F8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

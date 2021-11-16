@@ -11,7 +11,7 @@ let packagePath = Path.getFullName  "../../"
 let sharedPath = Path.getFullName "ResponseSvc.Shared"
 let serverPath = Path.getFullName "ResponseSvc.Server"
 let clientPath = Path.getFullName "ResponseSvc.Client"
-let deployPath = Path.getFullName "../../deploy/ResponseSvc"
+let deployPath = Path.getFullName "deploy"
 let sharedTestsPath = Path.getFullName "tests/Shared"
 let serverTestsPath = Path.getFullName "tests/Server"
 let clientTestsPath = Path.getFullName "tests/Client"
@@ -49,6 +49,10 @@ Target.create "Format" (fun _ ->
 open Fake.Core.TargetOperators
 
 let dependencies = [
+
+    "Clean"
+        ==> "InstallClient"
+        ==> "Bundle"
 
     "Clean"
         ==> "InstallClient"
