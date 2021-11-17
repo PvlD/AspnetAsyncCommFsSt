@@ -2,7 +2,15 @@
 
 converted https://github.com/hd9/aspnet-async-communication to F# : Sutil , Saturn
 
-from slodudion folder:  dotnet run 
+
+
+from slodudion folder:
+
+dotnet tool restore
+
+dotnet paket install
+
+dotnet run 
 
 wait when completed.
 
