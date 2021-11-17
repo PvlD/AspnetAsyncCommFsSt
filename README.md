@@ -36,6 +36,8 @@ from slodudion folder:  dotnet run -- Azure
 
 ![](/images/img4.png)
 
+![](/images/azure_vis)
+
 
 wait when completed.
 
