@@ -32,11 +32,13 @@ http://localhost:8081/#home
 
 ## Deployment to Azure 
 
-from slodudion folder:  dotnet run -- Azure 
+from slodudion folder: 
+
+dotnet run -- Azure 
 
 ![](/images/img4.png)
 
-![](/images/azure_vis)
+![](/images/azure_vis.png)
 
 
 wait when completed.
