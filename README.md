@@ -22,7 +22,7 @@ http://localhost:8081/#home
 ![](/images/img3.png)
 
 
-Deployment to Azure 
+##Deployment to Azure 
 
 from slodudion folder:  dotnet run -- Azure 
 
