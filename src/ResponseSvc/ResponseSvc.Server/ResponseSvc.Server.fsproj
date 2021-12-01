@@ -5,7 +5,7 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Core\Config\MassTransitConfig.fs" />
+    <Compile Include="..\..\Shared\MassTransitConfig.fs" Link="Core\Config\MassTransitConfig.fs" />
     <Compile Include="Core\Config\AppConfig.fs" />
     <Compile Include="Core\Services\ICatalogSvc.fs" />
     <Compile Include="Core\Services\CatalogSvc.fs" />

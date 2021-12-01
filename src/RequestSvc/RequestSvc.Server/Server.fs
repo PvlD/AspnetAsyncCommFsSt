@@ -17,6 +17,9 @@ open Microsoft.AspNetCore.Http
 open ResponseSvc.Core.Services.ProductsSetvice
 open HildenCo.Core.Contracts
 
+open AAC.Core.Config
+open MassTransit.Azure.ServiceBus.Core
+
 
 
 
@@ -30,16 +33,34 @@ let webApp =
 
 let configMassTransit (s:IServiceCollection)=
         let cfg = s.BuildServiceProvider() .GetService<IConfiguration>()
-        let massTransitConfig = cfg.GetSection(RequestSvc.Core.Config.MassTransitConfig.cfgSection).Get< RequestSvc.Core.Config.MassTransitConfig>()
+        let massTransitConfig = cfg.GetSection(MassTransitConfig.cfgSection).Get< MassTransitConfig>()
 
         s.AddMassTransit( fun  x ->
                     
-                        x.AddBus( fun context -> Bus.Factory.CreateUsingRabbitMq( fun c ->
-                        
-                            c.Host(massTransitConfig.Host);
-                            c.ConfigureEndpoints(context);
-                        ))
-                
+                        x.AddBus( fun context ->
+
+
+                            match SelectedBus.fromString  massTransitConfig.SelectedBus with
+                                |SelectedBus.Rabbitmq ->
+                                                    Bus.Factory.CreateUsingRabbitMq( fun c ->
+                                                    c.Host(massTransitConfig.Rabbitmq.Host);
+                                                    c.ConfigureEndpoints(context);
+                                                    )
+
+                                |SelectedBus.AzureServiceBus ->
+                                                    Bus.Factory.CreateUsingAzureServiceBus( fun c ->
+                                                    c.Host(massTransitConfig.AzureServiceBus.ConnectionStrings);
+                                                    c.ConfigureEndpoints(context);
+                                                    )
+
+                                        
+                                |_-> failwith $"unknowm SelectedBus:{massTransitConfig.SelectedBus}  in config"
+
+
+
+                            
+                        )
+
                         x.AddRequestClient<ProductInfoRequest>();
                         
                     ) |> ignore

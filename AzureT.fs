@@ -1,7 +1,42 @@
-module AzureT 
+module AzureT
+open Fake.Core
+
 open Farmer
 open Farmer.Builders
 open Farmer.Arm
+
+
+type SelectedBus =
+    |Rabbitmq
+    |AzureServiceBus
+    with
+    
+
+    static member fromString (s:string) = 
+                    
+                    let  (|Rabbitmq|AzureServiceBus |) (v : string) =
+                                           match v.Trim().ToLower() with 
+                                           |"rabbitmq" -> Rabbitmq
+                                           |"azureservicebus" -> AzureServiceBus 
+                                           |_-> failwith $"Unknown Bus type {v}"
+
+                    match s with  
+                    |Rabbitmq -> SelectedBus.Rabbitmq
+                    |AzureServiceBus  -> SelectedBus.AzureServiceBus
+
+    static member toString (v:SelectedBus) = 
+                    v.ToString()
+
+    static  member   envVarName = "bus"
+    
+    static member selectedBus() =
+                        Environment.environVarOrNone SelectedBus.envVarName
+                        |> function
+                          | Some s ->  SelectedBus.fromString s
+                          |       _->  let r = SelectedBus.Rabbitmq
+                                       Trace.logToConsole ($"Bus not set {r} is assumed" ,  Trace.EventLogEntryType.Warning)
+                                       r
+
 
     
 module ContainerRegistry =
@@ -32,37 +67,44 @@ module ApplicationGateway =
 
 
 
-        let net = vnet {
+        let net (selctedBus:SelectedBus) = vnet {
+
             name "aacfsst-vnet"
             build_address_spaces [
                 addressSpace {
                     space "10.28.0.0/16"
                     subnets [
-                        subnetSpec {
-                                          name "gw"
-                                          size 24
-                                      }
-                        subnetSpec {
-                            name "responseSvc"
-                            size 24
-                            add_delegations [
-                                SubnetDelegationService.ContainerGroups
-                            ]
-                        }
-                        subnetSpec {
-                            name "requestSvc"
-                            size 24
-                            add_delegations [
-                                SubnetDelegationService.ContainerGroups
-                            ]
-                        }
-                        subnetSpec {
-                            name "rabbit"
-                            size 24
-                            add_delegations [
-                                SubnetDelegationService.ContainerGroups
-                            ]
-                        }
+                        
+                            yield subnetSpec {
+                                              name "gw"
+                                              size 24
+                                          }
+                            yield subnetSpec {
+                                name "responseSvc"
+                                size 24
+                                add_delegations [
+                                    SubnetDelegationService.ContainerGroups
+                                ]
+                                }
+                            
+                            yield subnetSpec {
+                                name "requestSvc"
+                                size 24
+                                add_delegations [
+                                    SubnetDelegationService.ContainerGroups
+                                ]
+                            }
+                            yield!   match selctedBus with 
+                                                    | SelectedBus.Rabbitmq ->
+                                                                        [subnetSpec {
+                                                                            name "rabbit"
+                                                                            size 24
+                                                                            add_delegations [
+                                                                                SubnetDelegationService.ContainerGroups
+                                                                            ]
+                                                                        }
+                                                                        ]
+                                                    |_-> []
 
                     ]
                 }
@@ -74,7 +116,7 @@ module ApplicationGateway =
         let backendPoolNameRequestSvc = ResourceName "requestSvc-pool"
         let backendPoolNameRabbit = ResourceName "rabbit-pool"
 
-        let myAppGateway =
+        let myAppGateway (selctedBus:SelectedBus , net:VirtualNetworkConfig) =
             let gwIp =
                 gatewayIp {
                     name "aacfsst-gw-ip"
@@ -127,15 +169,27 @@ module ApplicationGateway =
                     ]
                 }
 
-            let backendPoolRabbit =
-                appGatewayBackendAddressPool {
-                    name backendPoolNameRabbit.Value
-                    add_backend_addresses [
-                        backend_ip_address "10.28.3.4"
-            
-                    ]
-                }
 
+            let   backendPools  =[
+                                  yield backendPoolReponseSvc 
+
+                                  yield backendPoolRequestSvc
+
+                                  yield!    selctedBus |> function
+                                                                |SelectedBus.Rabbitmq ->
+                                                                                        [
+                                                                                        appGatewayBackendAddressPool {
+                                                                                            name backendPoolNameRabbit.Value
+                                                                                            add_backend_addresses [
+                                                                                                backend_ip_address "10.28.3.4"
+            
+                                                                                            ]
+                                                                                        }
+
+                                                                                        ]
+                                                                |_-> []
+
+                                 ]
 
 
             let healthProbe =
@@ -180,78 +234,113 @@ module ApplicationGateway =
                 add_frontends [ frontendIp ]
                 add_frontend_ports [ frontendPort ]
                 add_http_listeners [ listener_requestSvc; listener_responseSvc ]
-                add_backend_address_pools [ backendPoolRequestSvc; backendPoolReponseSvc; backendPoolRabbit  ]
+                add_backend_address_pools backendPools  
                 add_backend_http_settings_collection [ backendSettings ]
                 add_request_routing_rules [ routingRule_responseSvc; routingRule_requestSvc ]
                 add_probes [ healthProbe ]
                 depends_on net
            }
 
+        
 
-        let getARM (  imageRegistryServer, imageRegistryUsername , imageRegistryPasswordKey ) =
+        let getARM ( selctedBus, imageRegistryServer, imageRegistryUsername , imageRegistryPasswordKey , serviceBus_connectionString_val : string option ) =
+
 
             let   registry_credentials = [{ ImageRegistryCredential.Server= imageRegistryServer + ".azurecr.io"; Username=imageRegistryUsername ; Password= SecureParameter imageRegistryPasswordKey }]
-            let   rabbit_env_var = ("MassTransit__Host","rabbitmq://10.28.3.4")
+
+            let   bus_env_var =  match selctedBus with
+                                    |SelectedBus.Rabbitmq -> [("MassTransit__SelectedBus",SelectedBus.Rabbitmq.ToString());("MassTransit__Rabbitmq__Host","rabbitmq://10.28.3.4")]
+                                    |SelectedBus.AzureServiceBus ->  [("MassTransit__SelectedBus",SelectedBus.AzureServiceBus.ToString());("MassTransit__AzureServiceBus__ConnectionStrings", Option.get serviceBus_connectionString_val)]
+
+            
+
+            let net = net(selctedBus)
+            let myAppGateway = myAppGateway(selctedBus,net)
+            let networkProfiles = [
+                                   yield networkProfile {
+                                       name "responseSvc-netprofile"
+                                       vnet net.Name.Value
+                                       subnet net.Subnets.[1].Name.Value
+                                   } 
+                                   yield networkProfile {
+                                       name "requestSvc-netprofile"
+                                       vnet net.Name.Value
+                                       subnet net.Subnets.[2].Name.Value
+                                   }
+                                   yield!  selctedBus |> function
+                                                        |SelectedBus.Rabbitmq -> [networkProfile {
+                                                                   name "rabbit-netprofile"
+                                                                   vnet net.Name.Value
+                                                                   subnet net.Subnets.[3].Name.Value
+                                                               }
+                                                               ]
+                                                        |_->[]
+
+                                  ] |> Seq.ofList |> Seq.cast<IBuilder> 
+            let containerGroups = [
+
+                                   yield  containerGroup {
+                                       add_registry_credentials registry_credentials
+                                       
+                                       name "aci-requestSvc"
+                                       add_instances [
+                                           containerInstance {
+                                               name "requestSvc"
+                                               image $"{imageRegistryServer}.azurecr.io/requestsvc:latest"
+                                               add_internal_ports [ 80us ]
+                                               env_vars bus_env_var
+                                           }
+                                       ]
+                                       network_profile "requestSvc-netprofile"
+                                   }
+ 
+
+                                   yield containerGroup {
+                                       add_registry_credentials registry_credentials
+                                       
+                                       name "aci-responseSvc"
+                                       add_instances [
+                                           containerInstance {
+                                               name "responseSvc"
+                                               image  $"{imageRegistryServer}.azurecr.io/responsesvc:latest"
+                                               add_internal_ports [ 80us ]
+                                               env_vars bus_env_var
+                                           }
+                                       ]
+                                       network_profile "responseSvc-netprofile"
+                                   }
+                                   yield!  selctedBus |> function
+                                                           |SelectedBus.Rabbitmq -> ([
+                                                                                           containerGroup {
+                                                                                           
+                                                                                           name "aci-rabbit"
+                                                                                           add_instances [
+                                                                                               containerInstance {
+                                                                                                   name "rabbit"
+                                                                                                   image $"docker.io/rabbitmq:3"
+                                                                                                   add_internal_ports [ 5672us ]
+                                                                                               }
+                                                                                           ]
+                                                                                           network_profile "rabbit-netprofile"
+                                                                                       }
+
+                                                                  ] 
+                                                                  )
+                                                           |_->[]
+
+                                  ] |> Seq.ofList |> Seq.cast<IBuilder> 
+                                
             arm {
                 location Cfg.location
                 add_resources [
-            
-                    msi
-                    net
-                    myAppGateway
-                    networkProfile {
-                        name "responseSvc-netprofile"
-                        vnet net.Name.Value
-                        subnet net.Subnets.[1].Name.Value
-                    }
-                    networkProfile {
-                        name "requestSvc-netprofile"
-                        vnet net.Name.Value
-                        subnet net.Subnets.[2].Name.Value
-                    }
-                    networkProfile {
-                        name "rabbit-netprofile"
-                        vnet net.Name.Value
-                        subnet net.Subnets.[3].Name.Value
-                    }
-
-                    containerGroup {
-                        add_registry_credentials registry_credentials
-                        name "aci-responseSvc"
-                        add_instances [
-                            containerInstance {
-                                name "responseSvc"
-                                image  $"{imageRegistryServer}.azurecr.io/responsesvc:latest"
-                                add_internal_ports [ 80us ]
-                                env_vars [rabbit_env_var]
-                            }
-                        ]
-                        network_profile "responseSvc-netprofile"
-                    }
-                    containerGroup {
-                        add_registry_credentials registry_credentials
-                        name "aci-requestSvc"
-                        add_instances [
-                            containerInstance {
-                                name "requestSvc"
-                                image $"{imageRegistryServer}.azurecr.io/requestsvc:latest"
-                                add_internal_ports [ 80us ]
-                                env_vars [rabbit_env_var]
-                            }
-                        ]
-                        network_profile "requestSvc-netprofile"
-                    }
-                    containerGroup {
-                        name "aci-rabbit"
-                        add_instances [
-                            containerInstance {
-                                name "rabbit"
-                                image $"docker.io/rabbitmq:3"
-                                add_internal_ports [ 5672us ]
-                            }
-                        ]
-                        network_profile "rabbit-netprofile"
-                    }
+                    yield!   ([
+                               msi 
+                               net
+                               myAppGateway
+                              ] : IBuilder list
+                              )
+                    yield! networkProfiles 
+                    yield! containerGroups
 
                 ]
             } 
@@ -260,6 +349,8 @@ module ApplicationGateway =
 
 
 let doIt( azureResourceGroup)=
+
+        let selctedBus = SelectedBus.selectedBus()
 
 
         let registry_name = Cfg.registry_name
@@ -288,11 +379,35 @@ let doIt( azureResourceGroup)=
         AzureACI.imageBuildDeployByDocker registry_login_server_val "requestsvc" Cfg.requestSvcPath
 
 
+        let azureServiceBus_data =   match selctedBus   with
+                                                    | SelectedBus.AzureServiceBus ->
+                                                                               let deployment = ABusT.getARM ( location)
+                                              
+                                                                               let deploymentOut =
+                                                                                           deployment
+                                                                                           |> Deploy.execute azureResourceGroup []
+                                           
+                                                                               let serviceBus_connectionString_key =  "serviceBus_connectionString"
+                                                                               let serviceBus_connectionString_val = deploymentOut.[serviceBus_connectionString_key]
 
-        let deploymentGw = ApplicationGateway.getARM(registry_name , registry_username_val ,registry_password_key  )
+                                                                               Some (serviceBus_connectionString_key ,serviceBus_connectionString_val)
+                                                                               //printfn "serviceBus_connectionString:%s   "  serviceBus_connectionString_val
+                                
+                                                    |_-> None
+
+        
+
+        let deploymentGw = ApplicationGateway.getARM(selctedBus, registry_name , registry_username_val ,registry_password_key,(azureServiceBus_data |> function
+                                                                                                                                                            | Some (_,v) -> Some(v)
+                                                                                                                                                            |_-> None
+                                                                                                                               )
+        )       
 
         deploymentGw
-        |> Deploy.execute azureResourceGroup [(registry_password_key ,registry_password_val)]
+        |> Deploy.execute azureResourceGroup [
+                                                yield (registry_password_key ,registry_password_val)
+
+                                             ]
         |> printfn "%A"
 
         //deploymentGw |> Writer.quickWrite "output"

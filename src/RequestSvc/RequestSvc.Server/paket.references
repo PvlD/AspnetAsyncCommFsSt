@@ -2,3 +2,4 @@ Saturn
 Fable.Remoting.Giraffe
 MassTransit.AspNetCore
 MassTransit.RabbitMQ
+MassTransit.Azure.ServiceBus.Core

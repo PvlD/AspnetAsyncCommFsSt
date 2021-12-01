@@ -17,7 +17,8 @@ open GreenPipes
 open Microsoft.AspNetCore.Http
 open ResponseSvc.Core.Services
 
-
+open AAC.Core.Config
+open MassTransit.Azure.ServiceBus.Core
 
 let productsSetviceApi (ctx: HttpContext)  : IProductsSetviceApi =
 
@@ -42,24 +43,48 @@ let configCatalogSvc (s:IServiceCollection)=
 
 let configMassTransit (s:IServiceCollection)=
         let cfg = s.BuildServiceProvider() .GetService<IConfiguration>()
-        let massTransitConfig = cfg.GetSection(RequestSvc.Core.Config.MassTransitConfig.cfgSection).Get< RequestSvc.Core.Config.MassTransitConfig>()
+        let massTransitConfig = cfg.GetSection(MassTransitConfig.cfgSection).Get< MassTransitConfig>()
 
         s.AddMassTransit( fun  x ->
             
                  x.AddConsumer<ProductInfoRequestConsumer>() |> ignore
 
                  x.AddBus(fun context ->
-                                    Bus.Factory.CreateUsingRabbitMq(fun c ->
-                                            c.Host(massTransitConfig.Host)
-                                            c.ReceiveEndpoint ( massTransitConfig.Queue,
-                                                               fun  (e:IRabbitMqReceiveEndpointConfigurator) ->
-                                                                                             e.PrefetchCount <- 16              
-                                                                                             e.UseMessageRetry(fun r -> r.Interval(2, 3000) |> ignore  )
-                                                                                             e.ConfigureConsumer<ProductInfoRequestConsumer>(context)
+
+                                    match SelectedBus.fromString  massTransitConfig.SelectedBus with
+                                        |SelectedBus.Rabbitmq ->
+
+                                                        Bus.Factory.CreateUsingRabbitMq(fun c ->
+                                                                c.Host(massTransitConfig.Rabbitmq.Host)
+                                                                c.ReceiveEndpoint ( massTransitConfig.Queue,
+                                                                                   fun  (e:IRabbitMqReceiveEndpointConfigurator) ->
+                                                                                                                 e.PrefetchCount <- 16              
+                                                                                                                 e.UseMessageRetry(fun r -> r.Interval(2, 3000) |> ignore  )
+                                                                                                                 e.ConfigureConsumer<ProductInfoRequestConsumer>(context)
                                                                                              
                                                                                         
-                                                               )
-                                    )  
+                                                                                   )
+                                                        )
+                                                        
+
+                                        |SelectedBus.AzureServiceBus ->
+                                                                     Bus.Factory.CreateUsingAzureServiceBus ( fun c ->
+                                                                                                                c.Host(massTransitConfig.AzureServiceBus.ConnectionStrings)
+                                                                                                                c.ReceiveEndpoint ( massTransitConfig.Queue ,
+                                                                                                                                   fun  (e:IServiceBusReceiveEndpointConfigurator) ->
+                                                                                                                                                                                       e.PrefetchCount <- 16              
+                                                                                                                                                                                       e.UseMessageRetry(fun r -> r.Interval(2, 3000) |> ignore  )
+                                                                                                                                                                                       e.ConfigureConsumer<ProductInfoRequestConsumer>(context)
+                                                                                                                                                                           
+                                                                                                                                                                   
+                                                                                                                                                              
+                                                                                                                                   )
+
+                                                                        
+                                                                                                               )   
+                                                                     
+                                        |_-> failwith $"unknowm SelectedBus:{massTransitConfig.SelectedBus}  in config"
+                                                
                             )
                                 
 
