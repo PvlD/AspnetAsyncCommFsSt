@@ -43,6 +43,8 @@ for Azure Service Bus : dotnet  run  -t Azure -e bus=azureservicebus
 
 ![](/images/img4.png)
 
+![](/images/azure_vis.png)
+
 ![](/images/AzBus.png)
 
 
