@@ -24,9 +24,16 @@ http://localhost:8081/#home
 
 ## Deployment to Azure 
 
-from slodudion folder:  dotnet run -- Azure 
+from slodudion folder
+
+for RabbitMQ : dotnet run -- Azure 
+
+for Azure Service Bus : dotnet  run  -t Azure -e bus=azureservicebus
+
 
 ![](/images/img4.png)
+
+![](/images/AzBus.png)
 
 
 wait when completed.
