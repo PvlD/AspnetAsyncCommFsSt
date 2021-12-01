@@ -36,7 +36,7 @@ http://localhost:8081/#home
 
 from slodudion folder
 
-for RabbitMQ : dotnet run -- Azure 
+for RabbitMQ : dotnet  run  -t Azure 
 
 for Azure Service Bus : dotnet  run  -t Azure -e bus=azureservicebus
 
