@@ -21,7 +21,7 @@ nuget Sutil
 nuget MassTransit.AspNetCore
 nuget MassTransit.RabbitMQ
 nuget Microsoft.AspNetCore.Authentication.JwtBearer  5.0.12
-
+nuget MassTransit.Azure.ServiceBus.Core
 
 nuget Fake.Core.Target
 nuget Fake.IO.FileSystem

@@ -7,6 +7,7 @@
     <Compile Include="Helpers.fs" />
     <Compile Include="AzureACI.fs" />
     <Compile Include="Cfg.fs" />
+    <Compile Include="ABusT.fs" />
     <Compile Include="AzureT.fs" />
     <Compile Include="Build.fs" />
   </ItemGroup>

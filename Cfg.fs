@@ -3,8 +3,9 @@ open Fake.IO
 open Farmer
 
 let azureResourceGroup = "AACFsStRG" 
-let registry_name = "aacfsstreg" 
-let location = Location.CentralUS
+let registry_name = "aacfsstreg" // change 
+let location = Location.WestUS2
+let azureServiceBus_name ="AspnetAsyncCommFsStBus" // change 
 
 
 let responseSvcPath = Path.getFullName "src/ResponseSvc"
